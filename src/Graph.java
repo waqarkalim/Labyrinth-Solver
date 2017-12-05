@@ -68,7 +68,7 @@ public class Graph implements GraphADT {
 //			System.out.println("The edgeType of Node " + u.getName() + " and Node " + i + " is " + edges[u.getName()][i].getType());
 			if (edges[u.getName()][i].getType() != null) {
 				found = true;
-				System.out.println("Mark of Node " + edges[u.getName()][i].secondEndpoint().getName() + " is " + Boolean.toString(edges[u.getName()][i].secondEndpoint().getMark()));
+//				System.out.println("Mark of Node " + edges[u.getName()][i].secondEndpoint().getName() + " is " + Boolean.toString(edges[u.getName()][i].secondEndpoint().getMark()));
 				edgeList.add(edges[u.getName()][i]);
 			} 
 		}

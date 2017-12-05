@@ -6,15 +6,18 @@ public class Labyrinth {
 	Graph graph;
 	private int entrance[] = new int[2];
 	private int exit[] = new int[2];
+	
+	private Stack<Node> pathstack = new Stack<Node>();
+	
 
 	private int scale, width, length, bbombs, abombs;
 
+	
 	Boolean markarray[];
 
 	public Labyrinth(String inputFile) throws LabyrinthException {
 
 		BufferedReader in;
-
 		String line;
 
 		int count = 0;
@@ -43,6 +46,9 @@ public class Labyrinth {
 			graph = new Graph((length * width));
 			markarray = new Boolean[length * width];
 
+			System.out.println("No. of bbombs: " + bbombs);
+			System.out.println("No. of abombs: " + abombs);
+			
 			for (int i = 0; i < length * width; i++) {
 				markarray[i] = false;
 			}
@@ -145,24 +151,111 @@ public class Labyrinth {
 		System.out.println("End node is Node " + endNode.getName());
 
 		// return null;
-		Stack<Node> pathstack = new Stack<Node>();
 		boolean isTherePath = path(startNode.getName(), endNode, bbombs, abombs, pathstack);
 
-		if (pathstack.iterator() == null) {
+		if (!(pathstack.iterator().hasNext())) {
+			return null;
+		}  else if (pathstack.iterator() == null) {
 			return null;
 		} else {
 			return pathstack.iterator();
 		}
 	}
 
+//	private boolean path(int startName, int endName, int bbombs, int abombs) {
+//		System.out.println("___________________________________________________________________________________");
+//		System.out.println("No. of bbombs is " + bbombs + " and the No. of abombs is " + abombs);
+//		
+//		
+//		Node startNode = graph.getNode(startName);
+//		Node endNode = graph.getNode(endName);
+//		
+//		
+//		boolean bbombMarker = false;
+//		boolean abombMarker = false;
+//		boolean canGo = false;
+//		boolean corridor = false;
+//		Stack tempStack;
+//		startNode.setMark(true);
+//		markarray[startName] = true;
+//		
+//		pathstack.push(startNode);
+//		
+//		if (startName == endName) {
+//			System.out.println("Found exit");
+//			return true;
+//		} else {
+//			
+//			Iterator<Edge> edges = graph.incidentEdges(startNode);			
+//			
+//			while (edges.hasNext()) {
+//				Edge tempEdge = edges.next();
+//				
+//				System.out.println("Current node is Node " + startNode.getName() + " " + markarray[startNode.getName()] + " and secondEndpoint is Node " + tempEdge.secondEndpoint().getName() + " " + markarray[tempEdge.secondEndpoint().getName()]);
+//				
+//				if (markarray[tempEdge.secondEndpoint().getName()] == true) {
+//					continue;
+//				}
+//				
+//				System.out.println("Edge between Node " + startNode.getName() + " and Node " + tempEdge.secondEndpoint().getName() + " is " + tempEdge.getType());
+//				if (tempEdge.getType() == "corridor") {
+//					corridor = true;
+//				} else if ((tempEdge.getType() == "wall") && (bbombs > 0)) {
+//					canGo = true;
+//				} else if ((tempEdge.getType() == "thickWall") && (bbombs > 1)) {
+//					canGo = true;
+//				} else if ((tempEdge.getType() == "metalWall") && (abombs > 0)) {
+//					canGo = true;
+//				}
+//				
+//				System.out.println("canGo is " + canGo + " corridor is " + corridor);
+//				if (canGo || corridor) {
+//					
+//					Node tempNode = tempEdge.secondEndpoint();
+//					
+//					if (tempEdge.getType() == "wall") {
+//						System.out.println("Wall Blown!!!");
+//						bbombs = bbombs - 1;
+//					} else if (tempEdge.getType() == "thickWall") {
+//						System.out.println("Thick wall Blown!!!");
+//						bbombs = bbombs - 2;
+//					} else if (tempEdge.getType() == "metalWall") {
+//						System.out.println("Metal wall Blown!!!");
+//						abombs = abombs - 1;
+//					}
+//					
+//					if (markarray[tempNode.getName()] == false) {
+//						if (path(tempNode.getName(), endName, bbombs, abombs)) {
+//							return true;
+//						}
+//					}
+//				}
+//				markarray[tempEdge.secondEndpoint().getName()] = false;
+//				tempEdge.secondEndpoint().setMark(false);
+//				System.out.println("Node " + pathstack.pop().getName() + " is being removed");
+//				System.out.println("--------------- Going back a call ---------------");
+//			}
+//			
+//		}
+//		return false;
+//		
+//	}
+	
+	
 	private boolean path(int startName, Node endNode, int bbombs, int abombs, Stack<Node> pathstack) {
 		System.out.println("________________________________________________________________________");
-		// System.out.println("Current node is Node " + current.getName() + " the mark
-		// is " + Boolean.toString(current.getMark()));
 		// graph.getNode(current.getName()).setMark(true);
 
+		boolean wallBlown = false;
+		boolean thickWallBlown = false;
+		boolean metalWallBlown = false;
+		
+		Edge edgeList[] = new Edge[4];
+		int count = 0;
 		Node current = graph.getNode(startName);
 
+		boolean canGo = false;
+		
 		current.setMark(true);
 		markarray[current.getName()] = true;
 
@@ -177,41 +270,98 @@ public class Labyrinth {
 
 		pathstack.push(current);
 
-		System.out.println("The mark of Node 0 is " + Boolean.toString(graph.getNode(0).getMark()));
+//		System.out.println("The mark of Node 0 is " + Boolean.toString(graph.getNode(0).getMark()));
 
-		if (endNode.getName() == current.getName()) {
-			System.out.println("Labyrinth solved");
-			return true;
-		}
+		
 
 		Iterator<Edge> iter = graph.incidentEdges(current);
-
+		Edge edge = null;
 		while (iter.hasNext()) {
 
-			Edge edge = iter.next();
-			if (!iter.hasNext()) {
-				System.out.println("Iter does not have a next");
-			}
+			edge = iter.next();
+//			edgeList[count] = edge;
+			count++;
+			
 			System.out.println("Current node is Node " + current.getName() + " " + markarray[current.getName()]
 					+ " and secondEndpoint is Node " + edge.secondEndpoint().getName() + " "
 					+ markarray[edge.secondEndpoint().getName()]);
-
-			// if (isMarked(edge.secondEndpoint())) {
 			if (markarray[edge.secondEndpoint().getName()] == true) {
+				continue;
+			}
+			
+			if (!iter.hasNext()) {
+				System.out.println("Iter for Node " + current.getName() + " does not have a next");
+			}
+			System.out.println("No. of bbombs are " + bbombs + " and the No. of abombs are " + abombs);
+			System.out.println("Going to check for canGo, the edgeType is "+ edge.getType());
+			if (edge.getType() == "corridor") {
+				System.out.println("Walking through a corridor between Node " + edge.firstEndpoint().getName() + " and Node " + edge.secondEndpoint().getName());
+				canGo = true;
+			} else if ((edge.getType() == "wall") && (bbombs > 0)) {
+				bbombs = bbombs -1 ;
+				System.out.println("BLOWS UP A NORMAL WALL!! between Node " + edge.firstEndpoint().getName() + " and Node " + edge.secondEndpoint().getName());
+				canGo = true;
+				wallBlown = true;
+			} else if ((edge.getType() == "thickWall") && (bbombs > 1)) {
+				bbombs = bbombs - 2;
+				System.out.println("BLOWS UP A THICK NORMAL WALL!! between Node " + edge.firstEndpoint().getName() + " and Node " + edge.secondEndpoint().getName());
+				canGo = true;
+				thickWallBlown = true;
+			} else if ((edge.getType() == "metalWall") && (abombs > 0)) {
+				abombs = abombs - 1;
+				System.out.println("BLOWS UP A METAL WALL!! between Node " + edge.firstEndpoint().getName() + " and Node " + edge.secondEndpoint().getName());
+				canGo = true;
+				metalWallBlown = true;
+			} else {
+				canGo = false;
+			}
+			
+			if ((endNode.getName() == current.getName()) && (canGo)) {
+				System.out.println("Labyrinth solved");
+				return true;
+			} else if (markarray[edge.secondEndpoint().getName()] == true) {
+				continue;
+			} else if (!canGo) { 
 				continue;
 			} else {
 				System.out.println("Enters here");
 				if (path(edge.secondEndpoint().getName(), endNode, bbombs, abombs, pathstack)) {
 					return true;
 				}
+				System.out.println("Now at Node " + current.getName());
+				if (wallBlown) {
+					bbombs = bbombs + 1;
+				} else if (thickWallBlown) {
+					bbombs = bbombs + 2;
+				} else if (metalWallBlown) {
+					abombs = abombs + 1;
+				}
 			}
+			
 		}
-		pathstack.pop();
+		if (pathstack.size() == 0) {
+			System.out.println("path stack is empty");
+		} else {
+			System.out.println("Path stack size is " + pathstack.size());
+		}
+		if (wallBlown) {
+			System.out.println("It's one of these------------- Wall Blown");
+			bbombs = bbombs + 1;
+		} else if (thickWallBlown) {
+			System.out.println("It's one of these------------- Thick Wall Blown");
+			bbombs = bbombs + 2;
+		} else if (metalWallBlown) {
+			System.out.println("It's one of these------------- Metal Wall Blown");
+			abombs = abombs + 1;
+		}
+		Node removed = pathstack.pop();
+		wallBlown = false;
+		thickWallBlown = false;
+		metalWallBlown = false;
+		graph.getNode(removed.getName()).setMark(false);
+		markarray[removed.getName()] = false;
+		System.out.println("-------------- Going back a call --------------");
 		return false;
-	}
-
-	private boolean isMarked(Node u) {
-		return (u.getMark());
 	}
 }
 
